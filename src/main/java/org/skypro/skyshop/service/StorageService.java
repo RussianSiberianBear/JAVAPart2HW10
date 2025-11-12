@@ -57,4 +57,8 @@ public class StorageService {
         Arrays.stream(articleArr).forEach(article -> this.articleStorage.put(article.getId(), article));
     }
 
+    public Optional<Product> getProductById(UUID id) {
+        return Optional.ofNullable(productStorage.get(id));
+    }
+
 }
