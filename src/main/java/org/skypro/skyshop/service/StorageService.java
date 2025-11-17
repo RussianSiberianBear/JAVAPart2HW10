@@ -21,6 +21,13 @@ public class StorageService {
         this.addToStorage();
     }
 
+    // Добавил такой конструктор для теста чтобы товары не добавлялись и была возможность
+    // проверки пустого хранилища по условиям ДЗ
+    public StorageService(Map<UUID, Product> productStorage, Map<UUID, Article> articleStorage) {
+        this.productStorage = productStorage;
+        this.articleStorage = articleStorage;
+    }
+
     public Collection<Product> getProductStorage() {
         return new ArrayList<>(this.productStorage.values());
     }
