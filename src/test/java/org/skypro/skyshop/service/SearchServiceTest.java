@@ -1,30 +1,48 @@
 package org.skypro.skyshop.service;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.skypro.skyshop.exception.SearchStringException;
 import org.skypro.skyshop.model.article.Article;
-import org.skypro.skyshop.model.product.DiscountedProduct;
-import org.skypro.skyshop.model.product.FixPriceProduct;
-import org.skypro.skyshop.model.product.Product;
-import org.skypro.skyshop.model.product.SimpleProduct;
 import org.skypro.skyshop.model.search.SearchResult;
+import org.skypro.skyshop.model.search.Searchable;
 
 import java.util.*;
 
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 public class SearchServiceTest {
 
+    @Mock
     private StorageService storageService;
+
+    @InjectMocks
     private SearchService searchService;
 
     @ParameterizedTest
     @NullAndEmptySource
+    public void whenIsEmptyOrBlankSearchString(String searchStr) {
+
+        // Ожидаемый результат
+        String waitResult = "SearchStringException";
+        // Выполняем тест
+        // Должно быть выброшено исключение при вызове searchService.search
+        Exception exception = Assertions.assertThrows(SearchStringException.class, () -> searchService.search(searchStr));
+        // Проверяем результат
+        Assertions.assertEquals(waitResult, exception.getClass().getSimpleName());
+    }
+
+    @ParameterizedTest
     @ValueSource(strings = "абракадабра")
     public void whenIsEmptyStorageService(String searchStr) {
 
-        storageService = new StorageService(new HashMap<>(), new HashMap<>());
-        searchService = new SearchService(storageService);
         // Выполняем тест
         Collection<SearchResult> result = searchService.search(searchStr);
         // Проверяем результат
@@ -32,15 +50,21 @@ public class SearchServiceTest {
     }
 
     @ParameterizedTest
-    @NullAndEmptySource
     @ValueSource(strings = "абракадабра")
     public void whenStorageIsNotEmptyButIsNoSuitableProduct(String searchStr) {
 
-        // Делаем тестовые данные, считая, что они очень маленькие и подойдут для теста,
-        // хотя они сейчас равны реальным данным, но считаем, что реальные данные могут быть очень большого размера,
-        // а тесты можем провести на данных маленького объема
-        addTestData();
-        searchService = new SearchService(storageService);
+        // Готовим данные для storage
+        Article[] articleArr = new Article[]{
+                new Article("Новости", "Новости дня."),
+                new Article("Корм для животных", "В данной статье рассказывается о видах кормов для домашних животных-кошек и собак."),
+                new Article("Домашние питомцы", "Статья о кошках и собаках. Кошки и собаки давние домашние питомцы."),
+                new Article("Вакансии", "Свежие вакансии на сегодня."),
+                new Article("Женские товары", "Косметика, духи и другие штучки для женщин.")
+        };
+        Collection<Searchable> storageData = Arrays.asList(articleArr);
+
+        when(storageService.getSearchableStorage()).thenReturn(storageData);
+
         // Выполняем тест
         Collection<SearchResult> result = searchService.search(searchStr);
 
@@ -52,11 +76,17 @@ public class SearchServiceTest {
     @ValueSource(strings = "кош")
     public void whenStorageIsNotEmptyAndIsExistsSuitableProduct(String searchStr) {
 
-        // Делаем тестовые данные, считая, что они очень маленькие и подойдут для теста,
-        // хотя они сейчас равны реальным данным, но считаем, что реальные данные могут быть очень большого размера,
-        // а тесты можем провести на данных маленького объема
-        addTestData();
-        searchService = new SearchService(storageService);
+        // Готовим данные для storage
+        Article[] articleArr = new Article[]{
+                new Article("Новости", "Новости дня."),
+                new Article("Корм для животных", "В данной статье рассказывается о видах кормов для домашних животных-кошек и собак."),
+                new Article("Домашние питомцы", "Статья о кошках и собаках. Кошки и собаки давние домашние питомцы."),
+                new Article("Вакансии", "Свежие вакансии на сегодня."),
+                new Article("Женские товары", "Косметика, духи и другие штучки для женщин.")
+        };
+        Collection<Searchable> storageData = Arrays.asList(articleArr);
+
+        when(storageService.getSearchableStorage()).thenReturn(storageData);
 
         // Готовим данные, которые должны получить
         Collection<SearchResult> waitResult = new ArrayList<>();
@@ -69,33 +99,6 @@ public class SearchServiceTest {
         // Проверяем результат
         Assertions.assertTrue(waitResult.size() == result.size() &&
                 waitResult.containsAll(result));
-    }
-
-    private void addTestData() {
-
-        Map<UUID, Product> productStorage = new HashMap<>();
-        Map<UUID, Article> articleStorage = new HashMap<>();
-
-        Product[] productsArr = new Product[]{
-                new DiscountedProduct("1-й продукт", 100, 10),
-                new SimpleProduct("2-й продукт", 200),
-                new DiscountedProduct("3-й продукт", 300, 20),
-                new FixPriceProduct("4-й продукт"),
-                new FixPriceProduct("4-й продукт"),
-                new SimpleProduct("5-й продукт", 500)
-        };
-        Arrays.stream(productsArr).forEach(product -> productStorage.put(product.getId(), product));
-
-        Article[] articleArr = new Article[]{
-                new Article("Новости", "Новости дня."),
-                new Article("Корм для животных", "В данной статье рассказывается о видах кормов для домашних животных-кошек и собак."),
-                new Article("Домашние питомцы", "Статья о кошках и собаках. Кошки и собаки давние домашние питомцы."),
-                new Article("Вакансии", "Свежие вакансии на сегодня."),
-                new Article("Женские товары", "Косметика, духи и другие штучки для женщин.")
-        };
-        Arrays.stream(articleArr).forEach(article -> articleStorage.put(article.getId(), article));
-
-        storageService = new StorageService(productStorage, articleStorage);
     }
 
 }
