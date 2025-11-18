@@ -5,6 +5,7 @@ import org.skypro.skyshop.model.search.SearchResult;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
