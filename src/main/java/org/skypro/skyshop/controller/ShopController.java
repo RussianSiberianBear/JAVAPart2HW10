@@ -39,10 +39,12 @@ public class ShopController {
 
     @GetMapping("/search")
     public ResponseEntity<?> search(@RequestParam String pattern) {
-        if (pattern == null || pattern.isBlank()) {
-            return ResponseEntity.status(400).body("Строка поиска не может быть пустой!");
+
+        try {
+            return ResponseEntity.status(200).body(searchService.search(pattern));
+        } catch (Exception e) {
+             return ResponseEntity.status(400).body(e.getMessage());
         }
-        return ResponseEntity.status(200).body(this.searchService.search(pattern));
     }
 
     @GetMapping("/basket/{id}")
