@@ -10,12 +10,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skypro.skyshop.exception.SearchStringException;
 import org.skypro.skyshop.model.article.Article;
-import org.skypro.skyshop.model.product.Product;
 import org.skypro.skyshop.model.search.SearchResult;
 import org.skypro.skyshop.model.search.Searchable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
@@ -55,8 +53,6 @@ public class SearchServiceTest {
     @ValueSource(strings = "абракадабра")
     public void whenStorageIsNotEmptyButIsNoSuitableProduct(String searchStr) {
 
-        Map<UUID, Article> articleStorage = new HashMap<>();
-
         // Готовим данные для storage
         Article[] articleArr = new Article[]{
                 new Article("Новости", "Новости дня."),
@@ -65,9 +61,9 @@ public class SearchServiceTest {
                 new Article("Вакансии", "Свежие вакансии на сегодня."),
                 new Article("Женские товары", "Косметика, духи и другие штучки для женщин.")
         };
-        Arrays.stream(articleArr).forEach(article -> articleStorage.put(article.getId(), article));
-        Collection<Searchable> storageData = new ArrayList<>(articleStorage.values());
+        Collection<Searchable> storageData = Arrays.asList(articleArr);
 
+        // Настраиваем mocks
         when(storageService.getSearchableStorage()).thenReturn(storageData);
 
         // Выполняем тест
@@ -81,9 +77,6 @@ public class SearchServiceTest {
     @ValueSource(strings = "кош")
     public void whenStorageIsNotEmptyAndIsExistsSuitableProduct(String searchStr) {
 
-        Map<UUID, Article> articleStorage = new HashMap<>();
-        articleStorage.clear();
-
         // Готовим данные для storage
         Article[] articleArr = new Article[]{
                 new Article("Новости", "Новости дня."),
@@ -92,9 +85,9 @@ public class SearchServiceTest {
                 new Article("Вакансии", "Свежие вакансии на сегодня."),
                 new Article("Женские товары", "Косметика, духи и другие штучки для женщин.")
         };
-        Arrays.stream(articleArr).forEach(article -> articleStorage.put(article.getId(), article));
-        Collection<Searchable> storageData = articleStorage.values().stream().collect(Collectors.toList());
+        Collection<Searchable> storageData = Arrays.asList(articleArr);
 
+        // Настраиваем mocks
         when(storageService.getSearchableStorage()).thenReturn(storageData);
 
         // Готовим данные, которые должны получить

@@ -10,10 +10,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.skypro.skyshop.exception.NoSuchProductException;
-import org.skypro.skyshop.model.article.Article;
 import org.skypro.skyshop.model.basket.ProductBasket;
 import org.skypro.skyshop.model.product.Product;
-import org.skypro.skyshop.model.product.SimpleProduct;
 
 import java.util.*;
 
@@ -42,7 +40,7 @@ public class BasketServiceTest {
         // Просьба пояснить
         when(storageService.getProductById(id)).thenReturn(Optional.empty());
 
-        // Исключение должно быть выброшено при вызове addToBasket
+        // Должно быть выброшено исключение при вызове basketService.addToBasket
         Exception exception = Assertions.assertThrows(NoSuchProductException.class, () -> basketService.addToBasket(id));
 
         // Проверяем только класс исключения, не строку сообщения об ошибке,
@@ -57,15 +55,17 @@ public class BasketServiceTest {
     @Test
     public void whenAddExistentProductToBasket() {
 
-        // случайный код продукта
+        // Случайный код продукта
         UUID id = UUID.randomUUID();
 
+        // Настраиваем mocks
         Product product = mock(Product.class);
-
         when(storageService.getProductById(id)).thenReturn(Optional.ofNullable(product));
 
+        // Тестируем
         basketService.addToBasket(id);
 
+        // Проверяем
         verify(productBasket, atLeastOnce()).add(id);
     }
 
@@ -76,11 +76,12 @@ public class BasketServiceTest {
         // Ожидаемый результат
         String waitResult = "IllegalArgumentException";
 
+        // Настраиваем mocks
         Product product = mock(Product.class);
         when(storageService.getProductById(productId)).thenReturn(Optional.ofNullable(product));
         Mockito.doThrow(IllegalArgumentException.class).when(productBasket).add(productId);
 
-        // Исключение должно быть выброшено при вызове productBasket.add
+        // Должно быть выброшено исключение при вызове productBasket.add
         Exception exception = Assertions.assertThrows(IllegalArgumentException.class, () -> basketService.addToBasket(productId));
 
         Assertions.assertEquals(waitResult, exception.getClass().getSimpleName());
@@ -96,17 +97,16 @@ public class BasketServiceTest {
     @Test
     public void whenUserBasketIsNotEmpty() {
 
-        Product product = new SimpleProduct("Product", 100);
-        Product[] productsArr = new Product[]{product};
+        // случайный код продукта
+        UUID id = UUID.randomUUID();
 
-        Map<UUID, Product> productStorage = new HashMap<>();
-        Map<UUID, Article> articleStorage = new HashMap<>();
-        Arrays.stream(productsArr).forEach(p -> productStorage.put(p.getId(), p));
-
-        StorageService storageService = new StorageService(productStorage, articleStorage);
         BasketService basketService = new BasketService(new ProductBasket(), storageService);
 
-        basketService.addToBasket(product.getId());
+        // Настраиваем mocks
+        Product product = mock(Product.class);
+        when(storageService.getProductById(id)).thenReturn(Optional.ofNullable(product));
+
+        basketService.addToBasket(id);
 
         Assertions.assertFalse(basketService.getUserBasket().getBasketItem().isEmpty());
     }
